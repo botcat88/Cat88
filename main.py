@@ -4,14 +4,14 @@ import random
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 
-# 🛠 Cấu hình
+# ⚙️ Cấu hình
 TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
-ADMIN_ID = 6077546091  # 🔐 Thay bằng Telegram user ID của bạn
+ADMIN_ID = 6077546091  # Thay bằng Telegram user ID của bạn
 USER_DATA_FILE = "users.json"
 START_MONEY = 10_000_000
 BET_AMOUNT = 10_000_000
 
-# 🔄 Lưu / Tải người dùng
+# 📦 Lưu / tải người dùng
 def load_users():
     if not os.path.exists(USER_DATA_FILE):
         return {}
@@ -35,11 +35,7 @@ def update_user_full(user_id, money, history):
     users[str(user_id)] = {"money": money, "history": history[-5:]}
     save_users(users)
 
-def update_user(user_id, money):
-    user = get_or_create_user(user_id)
-    update_user_full(user_id, money, user.get("history", []))
-
-# 🎲 Xử lý kết quả xúc xắc
+# 🎲 Xúc xắc
 def roll_dice():
     dice = [random.randint(1, 6) for _ in range(3)]
     total = sum(dice)
@@ -59,21 +55,22 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # 🆕 /dangky
 async def dangky(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
-    user = get_or_create_user(user_id)
-    if user["money"] == 0:
-        user["money"] += 10_000_000
-        save_data()
+    users = load_users()
+    uid = str(user_id)
+    if uid not in users or users[uid]["money"] == 0:
+        users[uid] = {"money": START_MONEY, "history": []}
+        save_users(users)
         await update.message.reply_text(
-            "Chào mừng bạn đến với Meow Meow 88!\n"
+            "Chào mừng bạn đến với Ryan!\n"
             "**Chức năng:**\n"
             "- **Tai xiu:**\n"
             " - Đặt cược: `T/X/C/L sotien` (Tai, Xiu, Chan, Le)\n\n"
             "Bạn đã được tặng 10,000,000 VNĐ làm vốn khởi nghiệp. Chúc bạn may mắn!"
         )
     else:
-        await update.message.reply_text("Bạn đã đăng ký rồi hoặc vẫn còn tiền!")
+        await update.message.reply_text("❌ Bạn đã đăng ký rồi hoặc vẫn còn tiền!")
 
-# 🎰 Chơi game
+# 🎮 Chơi game
 async def play_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     user = get_or_create_user(user_id)
@@ -119,7 +116,7 @@ async def top(update: Update, context: ContextTypes.DEFAULT_TYPE):
         msg += f"{i}. ID:{uid} - {data['money']:,}đ\n"
     await update.message.reply_text(msg)
 
-# 🔡 Nhập T/X/C/L
+# ✉️ Text thường (T/X/C/L)
 async def handle_text_choice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.strip().lower()
     mapping = {"t": "tai", "x": "xiu", "c": "chan", "l": "le"}
@@ -129,48 +126,19 @@ async def handle_text_choice(update: Update, context: ContextTypes.DEFAULT_TYPE)
     else:
         await update.message.reply_text("❓ Nhập 1 ký tự: T (Tài), X (Xỉu), C (Chẵn), L (Lẻ).")
 
-# 🔑 /admin
-async def admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.message.from_user.id == ADMIN_ID:
-        await update.message.reply_text("🔐 Bạn là admin.")
-    else:
-        await update.message.reply_text("❌ Bạn không có quyền admin.")
-
-# 💵 /naptien ID SOTIEN
-async def naptien(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.message.from_user.id != ADMIN_ID:
-        await update.message.reply_text("❌ Bạn không phải admin.")
-        return
-
-    try:
-        args = context.args
-        target_id = str(args[0])
-        amount = int(args[1])
-        users = load_users()
-        if target_id not in users:
-            await update.message.reply_text("❌ Không tìm thấy người dùng.")
-            return
-        users[target_id]["money"] += amount
-        save_users(users)
-        await update.message.reply_text(f"✅ Đã nạp {amount:,}đ cho ID: {target_id}")
-    except:
-        await update.message.reply_text("❗ Dùng đúng cú pháp: /naptien ID SOTIEN")
-
 # 🚀 Khởi động bot
 app = ApplicationBuilder().token(TOKEN).build()
 
-# ⌨️ Command
+# Lệnh
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("dangky", dangky))
 app.add_handler(CommandHandler("sodu", sodu))
 app.add_handler(CommandHandler("top", top))
-app.add_handler(CommandHandler("admin", admin))
-app.add_handler(CommandHandler("naptien", naptien))
 
 for cmd in ["chan", "le", "tai", "xiu"]:
     app.add_handler(CommandHandler(cmd, play_game))
 
-# ✉️ Text thường (T/X/C/L)
+# Bắt text
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_choice))
 
 if __name__ == "__main__":
