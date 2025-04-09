@@ -60,11 +60,18 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def dangky(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     user = get_or_create_user(user_id)
-    if user["money"] > 0:
-        await update.message.reply_text("❌ Bạn đã có tài khoản rồi!")
+    if user["money"] == 0:
+        user["money"] += 10_000_000
+        save_data()
+        await update.message.reply_text(
+            "Chào mừng bạn đến với bot Ryan!\n"
+            "**Chức năng:**\n"
+            "- **Tai xiu:**\n"
+            " - Đặt cược: `T/X/C/L sotien` (Tai, Xiu, Chan, Le)\n\n"
+            "Bạn đã được tặng 10,000,000 VNĐ làm vốn khởi nghiệp. Chúc bạn may mắn!"
+        )
     else:
-        update_user(user_id, START_MONEY)
-        await update.message.reply_text(f"✅ Đăng ký thành công! Bạn nhận được {START_MONEY:,}đ.")
+        await update.message.reply_text("Bạn đã đăng ký rồi hoặc vẫn còn tiền!")
 
 # 🎰 Chơi game
 async def play_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
