@@ -64,7 +64,7 @@ async def dangky(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user["money"] += 10_000_000
         save_data()
         await update.message.reply_text(
-            "Chào mừng bạn đến với bot Ryan!\n"
+            "Chào mừng bạn đến với Meow Meow 88!\n"
             "**Chức năng:**\n"
             "- **Tai xiu:**\n"
             " - Đặt cược: `T/X/C/L sotien` (Tai, Xiu, Chan, Le)\n\n"
