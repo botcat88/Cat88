@@ -90,7 +90,7 @@ async def dangky(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = get_or_create_user(user_id)
     if user["money"] == 0:
         user["money"] += START_MONEY
-        save_users(load_users())
+        update_user_full(user_id, user["money"], user.get("history", []))
         await update.message.reply_text(
             "Chào mừng đến với Meow Meow 88! Bạn đã được tặng 10,000,000 VNĐ khởi nghiệp.\n"
             "Chơi ngay bằng cách gửi T/X/C/L [số tiền] hoặc dùng lệnh /cltx"
